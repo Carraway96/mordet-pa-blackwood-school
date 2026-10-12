@@ -45,7 +45,7 @@ Klicka på **Fortsätt** för nästa replik. Vid undersökningar klickar man på
 
 Den nya versionen sparar aktuell scen, hittade föremål och svar i `localStorage` under `blackwood-novel-v2`. Den gamla versionens sparning ligger kvar separat och blandas inte in i den nya berättelsen. **Börja om** återställer bara den nya versionen. Om lagring blockeras visas ett meddelande; sessionen kan ändå spelas klart.
 
-Spelet samlar inte in elevnamn och gör inga externa API-anrop. Bilderna är egen SVG och ljudet skapas lokalt med Web Audio. Inga externa typsnitt, analysverktyg eller ljudfiler används. Webbhotellet kan föra vanliga serverloggar. Ljud är frivilligt. Alla personer och händelser är fiktiva; inga blodiga bilder eller skräckeffekter förekommer.
+Spelet samlar inte in elevnamn och gör inga externa API-anrop. Miljöerna är SVG och de sex karaktärerna är bildgenererade illustrationer med transparent bakgrund, lagrade i projektet. Bildgenerering sker inte när eleverna spelar. Ljudet skapas lokalt med Web Audio. Inga externa typsnitt, analysverktyg eller ljudfiler används. Webbhotellet kan föra vanliga serverloggar. Ljud är frivilligt. Alla personer och händelser är fiktiva; inga blodiga bilder eller skräckeffekter förekommer.
 
 ## Ändra berättelsen
 
@@ -55,7 +55,8 @@ Spelet samlar inte in elevnamn och gör inga externa API-anrop. Bilderna är ege
 | `src/novelEngine.ts` | Sparformat, progression och kontroll av bevisval                     |
 | `src/NovelApp.tsx`   | Scenvisning, porträtt, dialog, anteckningar och ljud                 |
 | `src/novel.css`      | Utseendet för berättelseäventyret                                    |
-| `src/Art.tsx`        | Illustrationer av miljöer och personer                               |
+| `src/Art.tsx`        | Miljöer och visning av karaktärsbilder                                |
+| `src/characters.ts` och `src/assets/characters/` | De sex bildgenererade porträtten       |
 | `src/story.ts`       | Deckarbegrepp och grundmaterialet för mysteriet                      |
 
 Varje scen har ett stabilt `id`, kapitel, rum, talande person och kort text. Scenens `kind` anger om den är en vanlig replik, undersökning, fråga, bevisval, anklagelse eller avslutning. `recap` sparar en kort sammanfattning, och `concept` introducerar ett deckarord.

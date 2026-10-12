@@ -20,6 +20,7 @@ test("hela berättelsen med alla personer, fel val, hjälp, sparning och slut", 
         })
         .first(),
     ).toBeVisible();
+    await expect.poll(async()=>page.getByRole('img',{name:`Illustration av ${cast[scene.speaker].name}`,exact:true}).first().evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true);
     if (scene.id === "daniel-enter") {
       await page.reload();
       await expect(
