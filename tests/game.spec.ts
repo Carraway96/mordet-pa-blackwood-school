@@ -1,111 +1,155 @@
 import { test, expect } from "@playwright/test";
-import { clues, people, connections } from "../src/story";
-test("hela fallet, fel svar, sparning och omstart", async ({ page }) => {
+import { scenes, cast, simpleClues } from "../src/novel";
+test("hela berättelsen med alla personer, fel val, hjälp, sparning och slut", async ({
+  page,
+}, info) => {
   test.setTimeout(120000);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await page.getByRole("button", { name: "Öppna fallet" }).click();
-  await page.getByRole("button", { name: "Tillbaka till fallet" }).click();
-  await page.screenshot({ path: "../../work/start-library.png" });
-  for (const c of clues.filter((c) => c.room === "library")) {
-    await page.getByRole("button", { name: c.name, exact: true }).click();
-    await expect(page.getByRole("dialog")).toContainText(c.text);
-    await page.getByRole("button", { name: "Tillbaka till fallet" }).click();
-  }
-  await page.getByRole("button", { name: "Börja utredningen" }).click();
-  await page.getByRole("button", { name: "Tillbaka till fallet" }).click();
-  await page.reload();
-  await expect(page.getByText("4/8 bevis")).toBeVisible();
-  for (const room of ["hall", "office"]) {
-    await page
-      .getByRole("button", {
-        name: room === "hall" ? "Korridoren" : "Rektorsexpeditionen",
-        exact: true,
-      })
-      .click();
-    for (const c of clues.filter((c) => c.room === room)) {
-      await page.getByRole("button", { name: c.name, exact: true }).click();
-      await page.getByRole("button", { name: "Tillbaka till fallet" }).click();
+  await page.getByRole("button", { name: "Börja berättelsen" }).click();
+  for (const scene of scenes) {
+    await expect(
+      page.getByRole("heading", { name: scene.title, exact: true }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByRole("img", {
+          name: `Illustration av ${cast[scene.speaker].name}`,
+          exact: true,
+        })
+        .first(),
+    ).toBeVisible();
+    if (scene.id === "daniel-enter") {
+      await page.reload();
+      await expect(
+        page.getByRole("heading", { name: scene.title, exact: true }),
+      ).toBeVisible();
+      await page.screenshot({ path: info.outputPath("daniel.png") });
     }
-  }
-  await page.getByRole("button", { name: "Behöver du en ledtråd?" }).click();
-  await page.getByRole("button", { name: "Visa tydligare hjälp" }).click();
-  await page.getByRole("button", { name: "Visa tydligare hjälp" }).click();
-  await expect(page.getByRole("dialog")).toContainText("Nivå 3");
-  await page.getByRole("button", { name: "Stäng", exact: true }).click();
-  await page.getByRole("button", { name: "Förhör de misstänkta" }).click();
-  for (const p of Object.values(people)) {
-    await page.getByRole("button", { name: p.name, exact: true }).click();
-    for (const q of p.questions) {
-      await page.getByRole("button", { name: q.q }).click();
-      await expect(page.getByRole("dialog")).toContainText(q.a);
+    if (scene.kind === "inspect") {
+      await expect(
+        page.getByRole("button", { name: "Fortsätt →", exact: true }),
+      ).toBeDisabled();
+      for (const id of scene.items) {
+        await page
+          .getByRole("button", {
+            name: new RegExp(
+              simpleClues[id].title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            ),
+          })
+          .click();
+        await expect(page.getByRole("dialog")).toContainText(
+          simpleClues[id].text,
+        );
+        await page
+          .getByRole("button", { name: "Tillbaka till berättelsen" })
+          .click();
+      }
     }
-  }
-  await page.getByRole("button", { name: "Stäng", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Anteckningsbok", exact: false })
-    .click();
-  for (const c of connections) {
-    for (const id of c.pair)
+    if (scene.kind === "question") {
+      await page.getByRole("button", { name: scene.options[0].label }).click();
+      await expect(
+        page.getByText(scene.options[0].answer, { exact: true }),
+      ).toBeVisible();
+    }
+    if (scene.kind === "evidence") {
+      if (scene.id === "clock-link") {
+        await page
+          .getByRole("button", { name: new RegExp(simpleClues.desk.title) })
+          .click();
+        await page.getByRole("button", { name: "Visa beviset" }).click();
+        await expect(page.getByText(/Du kan prova igen/)).toBeVisible();
+        await page.getByRole("button", { name: "Hjälp", exact: true }).click();
+        await page
+          .getByRole("button", { name: "Visa tydligare hjälp" })
+          .click();
+        await page
+          .getByRole("button", { name: "Visa tydligare hjälp" })
+          .click();
+        await expect(page.getByRole("dialog")).toContainText("Hjälp 3 av 3");
+        await page.getByRole("button", { name: "Stäng", exact: true }).click();
+      }
+      for (const id of scene.correct)
+        await page
+          .getByRole("button", { name: new RegExp(simpleClues[id].title) })
+          .click();
       await page
-        .getByRole("dialog")
         .getByRole("button", {
-          name: new RegExp(clues.find((x) => x.id === id)!.name),
+          name:
+            scene.correct.length === 2
+              ? "Koppla ihop de två bevisen"
+              : "Visa beviset",
         })
         .click();
-    await expect(page.getByRole("dialog").getByRole("status")).toContainText(
-      c.title,
-    );
+      await expect(
+        page.getByText(scene.success, { exact: true }),
+      ).toBeVisible();
+    }
+    if (scene.kind === "accuse") {
+      await page.getByRole("button", { name: /Daniel Holm/ }).click();
+      await expect(
+        page.getByText(/Du kan välja en annan person/),
+      ).toBeVisible();
+      await page.getByRole("button", { name: /Elisabeth Berg/ }).click();
+    }
+    if (scene.kind !== "finish")
+      await page
+        .getByRole("button", { name: "Fortsätt →", exact: true })
+        .click();
   }
-  await page.screenshot({ path: "../../work/notebook.png" });
-  await page.getByRole("button", { name: "Stäng", exact: true }).click();
-  await page.getByRole("button", { name: "Förhör de misstänkta" }).click();
-  for (const p of Object.values(people)) {
-    await page.getByRole("button", { name: p.name, exact: true }).click();
-    await page.getByRole("button", { name: p.confrontQ, exact: false }).click();
-    await expect(page.getByRole("dialog")).toContainText(p.confront);
-  }
-  await page.getByRole("button", { name: "Stäng", exact: true }).click();
-  await page.getByRole("button", { name: "Samla till avslöjandet" }).click();
-  await page.getByLabel("Vem begick mordet?").selectOption("daniel");
-  await page.getByRole("button", { name: "Presentera min lösning" }).click();
-  await expect(page.getByRole("dialog").getByRole("status")).toContainText(
-    "håller inte ihop",
-  );
-  await page.getByLabel("Vem begick mordet?").selectOption("elisabeth");
-  await page.getByLabel("Vilket motiv").selectOption("sale");
-  for (const id of ["clock", "lock", "ledger"])
-    await page
-      .getByLabel(clues.find((c) => c.id === id)!.name, { exact: true })
-      .check();
-  await page.getByRole("button", { name: "Presentera min lösning" }).click();
-  for (let i = 0; i < 3; i++)
-    await page.getByRole("button", { name: "Fortsätt berättelsen" }).click();
-  await page.getByRole("button", { name: "Se hur deckaren" }).click();
-  await expect(page.getByText("Du läste mellan spåren.")).toBeVisible();
-  await page.reload();
-  await expect(page.getByText("Du läste mellan spåren.")).toBeVisible();
-  await page.getByRole("button", { name: "Spela igen", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Starta om spelet", exact: true })
-    .click();
   await expect(
-    page.getByRole("button", { name: "Öppna fallet" }),
+    page.getByRole("heading", { name: "Fallet är löst", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Fallet är löst", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Se dina anteckningar" }).click();
+  await expect(page.getByRole("dialog").getByRole("img")).toHaveCount(6);
+  await page.getByRole("button", { name: "Deckarord", exact: true }).click();
+  for (const word of [
+    "Deckare",
+    "Misstänkt",
+    "Ledtråd",
+    "Motiv",
+    "Alibi",
+    "Villospår",
+    "Spänningsuppbyggnad",
+    "Upplösning",
+  ])
+    await expect(
+      page
+        .getByRole("dialog")
+        .getByRole("heading", { name: word, exact: true }),
+    ).toBeVisible();
+  await page.getByRole("button", { name: "Stäng", exact: true }).click();
+  await page.getByRole("button", { name: "Spela igen" }).click();
+  await page.getByRole("button", { name: "Starta om", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Börja berättelsen" }),
   ).toBeVisible();
   expect(errors).toEqual([]);
 });
-test("startskärm och liten elevskärm", async ({ page }) => {
+test("porträtt och dialog på elevdator och liten skärm", async ({
+  page,
+}, info) => {
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.goto("/");
-  await page.screenshot({ path: "../../work/start.png" });
+  await page.screenshot({ path: info.outputPath("start.png") });
+  await page.getByRole("button", { name: "Börja berättelsen" }).click();
+  await page.screenshot({ path: info.outputPath("noren.png") });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole("button", { name: "Öppna fallet" }).click();
-  await page.getByRole("button", { name: "Tillbaka till fallet" }).click();
-  await page.screenshot({ path: "../../work/mobile.png" });
+  await page.screenshot({ path: info.outputPath("mobile.png") });
   expect(
     await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
+      () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  await expect(
+    page.getByRole("img", { name: "Illustration av Kommissarie Norén" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Fortsätt →", exact: true }),
+  ).toBeVisible();
 });

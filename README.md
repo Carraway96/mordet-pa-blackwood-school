@@ -1,19 +1,29 @@
 # Mordet på Blackwood School
 
-Ett komplett svenskt point-and-click-äventyr för årskurs 7. Eleven undersöker tre illustrerade miljöer, hittar åtta bevis, förhör tre misstänkta, upptäcker tre samband och presenterar en underbyggd lösning. Alla tre kapitel och upplösningen är implementerade.
+Ett svenskt berättelseäventyr för årskurs 7, inspirerat av visual novels. Karaktären som talar visas stort i scenens kant och replikerna kommer en i taget. Kommissarie Norén leder eleven genom tre kapitel och sammanfattar vad man vet.
 
-## Starta lokalt
+## Den förenklade versionen
 
-Installera Node.js 22 och kör följande i projektmappen:
+- En tydlig väg genom historien, utan fri kartnavigering eller komplicerade förhörsmenyer.
+- Sex illustrerade personer: eleven, Norén, Viktor, Elisabeth, Daniel och Sara.
+- Åtta korta bevis, undersökta i tre guidade miljöer.
+- Frågeval och bevisval direkt i samtalen. En enkel kombination av två bevis.
+- Korta sammanfattningar efter förhören och återläsning av föregående replik.
+- Anteckningar om personer, ledtrådar, berättelsen och deckarord.
+- Ett tydligt avslöjande, en fullständig upplösning och ett pedagogiskt avslut.
+
+Felaktiga bevis och personval kan alltid prövas igen. Tre hjälpnivåer följer aktuell scen. Ingen timer, inloggning eller installation behövs för eleverna på den publicerade sidan.
+
+## Starta och bygga
+
+Installera Node.js 22 för utveckling och kör i projektmappen:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Öppna adressen som Vite visar (normalt http://127.0.0.1:5173). Node behövs bara för utveckling. Elever behöver endast en modern webbläsare när spelet är publicerat.
-
-## Bygga
+Öppna adressen Vite visar, normalt http://127.0.0.1:5173.
 
 ```sh
 npm test
@@ -21,49 +31,46 @@ npm run build
 npm run preview
 ```
 
-`dist/` innehåller hela webbplatsen. Lägg mappens innehåll på en statisk webbserver. Relativa asset-adresser fungerar även under en GitHub Pages-projektadress.
+`dist/` kan publiceras på valfri statisk webbserver. Relativa asset-adresser fungerar under en GitHub Pages-projektadress.
 
 ## GitHub Pages
 
-1. I repots **Settings → Pages**, välj **GitHub Actions** under Source.
-2. Arbetsflödet `.github/workflows/pages.yml` testar och bygger vid push till `main`. Kör det manuellt från fliken Actions om filerna redan finns på `main`.
-3. Vänta tills både build och deploy är gröna. Speladressen är då `https://carraway96.github.io/mordet-pa-blackwood-school/`.
+Välj **Settings → Pages → Source → GitHub Actions**. Arbetsflödet `.github/workflows/pages.yml` testar, bygger och publicerar vid push till `main`. Det kan också köras manuellt från Actions.
 
-Om Pages inte har aktiverats ännu kan deployment-jobbet misslyckas. Aktivera Pages och kör arbetsflödet igen. En förväntad adress är inte samma sak som en verifierad publicering.
+Speladressen är https://carraway96.github.io/mordet-pa-blackwood-school/. Kontrollera att publiceringsjobbet är grönt efter en ändring.
 
-## Spela och undervisa
+## Kontroller och sparning
 
-Använd mus eller Tab och Enter. Escape stänger anteckningar och dialoger. Inga små dolda klickytor behövs. Hjälpen har tre nivåer och följer den pågående utredningen. Felaktiga beviskombinationer och anklagelser kan alltid prövas igen.
+Klicka på **Fortsätt** för nästa replik. Vid undersökningar klickar man på markerade föremål. Vid samtal väljer man en fråga eller ett bevis. Tab och Enter fungerar, och Escape stänger dialoger. **Läs föregående** låter eleven läsa om utan att förlora bevis.
 
-Progressionen sparas med `localStorage` på samma dator och webbläsare. Om lagring blockeras visas ett meddelande; spelet kan ändå slutföras under sessionen. Börja om via menyn före nästa elev. Inget elevnamn samlas in. Inga analysverktyg, externa typsnitt, API-anrop eller betaltjänster finns i det publicerade spelet. Webbhotellet kan föra vanliga serverloggar.
+Den nya versionen sparar aktuell scen, hittade föremål och svar i `localStorage` under `blackwood-novel-v2`. Den gamla versionens sparning ligger kvar separat och blandas inte in i den nya berättelsen. **Börja om** återställer bara den nya versionen. Om lagring blockeras visas ett meddelande; sessionen kan ändå spelas klart.
 
-Ljudet skapas lokalt med Web Audio, utan externa ljudfiler. Illustrationerna är egen SVG. Inget blod, grafiskt våld eller jump scares förekommer. Alla personer och händelser är fiktiva.
+Spelet samlar inte in elevnamn och gör inga externa API-anrop. Bilderna är egen SVG och ljudet skapas lokalt med Web Audio. Inga externa typsnitt, analysverktyg eller ljudfiler används. Webbhotellet kan föra vanliga serverloggar. Ljud är frivilligt. Alla personer och händelser är fiktiva; inga blodiga bilder eller skräckeffekter förekommer.
 
-**Tidsmål:** 20–25 minuter, inklusive en avslutning på ungefär två minuter. Det är ett designmål, inte verifierad elevspeltid. Utredningen innehåller åtta föremål, nio grundfrågor, tre kombinationer, tre konfrontationer och ett avslöjande. Ingen timer eller påtvingad väntan finns. Snabba läsare kan bli klara tidigare. Genomför ett pilotspel med några elever och justera textmängden efter deras faktiska tider; sikta på högst 30 minuter vid normalt spelande.
+## Ändra berättelsen
 
-Efteråt kan eleverna berätta vilket bevis som ändrade deras första misstanke och varför en lögn inte alltid betyder skuld. De åtta begreppen introduceras under spelet och samlas i anteckningsboken. Avslutningen visar berättelsens fem delar och hur spänningen byggdes.
+| Fil                  | Innehåll                                                             |
+| -------------------- | -------------------------------------------------------------------- |
+| `src/novel.ts`       | Scenordning, repliker, personer, förenklade bevis, val och scenhjälp |
+| `src/novelEngine.ts` | Sparformat, progression och kontroll av bevisval                     |
+| `src/NovelApp.tsx`   | Scenvisning, porträtt, dialog, anteckningar och ljud                 |
+| `src/novel.css`      | Utseendet för berättelseäventyret                                    |
+| `src/Art.tsx`        | Illustrationer av miljöer och personer                               |
+| `src/story.ts`       | Deckarbegrepp och grundmaterialet för mysteriet                      |
 
-## Ändra eller skapa fler mysterier
+Varje scen har ett stabilt `id`, kapitel, rum, talande person och kort text. Scenens `kind` anger om den är en vanlig replik, undersökning, fråga, bevisval, anklagelse eller avslutning. `recap` sparar en kort sammanfattning, och `concept` introducerar ett deckarord.
 
-| Fil             | Innehåll                                                                   |
-| --------------- | -------------------------------------------------------------------------- |
-| `src/story.ts`  | Rum, bevis, personer, frågor, begrepp, samband och upplösning              |
-| `src/engine.ts` | Sparformat, krav för avslöjandet, beviskombinationer och progressionshjälp |
-| `src/App.tsx`   | Gränssnitt, modalrutor, förhör, anklagelse och ljud                        |
-| `src/Art.tsx`   | SVG-miljöer och porträtt                                                   |
-| `src/style.css` | Färger, layout, dokument och animationer                                   |
+Skapa fler fall genom att kopiera berättelsemodulen och byta personer, scenordning, bevis och upplösning. Uppdatera importerna, illustrerade miljöer och sparnyckeln. Kontrollera särskilt att alla valbara bevis hittas före scenen där de behövs. Anklagelsens rätta person anges för närvarande i `accuse()` i `NovelApp.tsx` och behöver ändras för ett nytt fall.
 
-Dialoger ändras i `people.questions` och `people.confront`. Varje bevis har ett stabilt `id`, ett `room`, koordinater i procent och korta textstycken. Ändra `connections` när två bevis ska skapa ett samband; personens `requires` anger vilket samband som öppnar konfrontationen. Lösningen anges i `resolution`.
-
-För ett nytt mysterium: kopiera berättelsemodulen, behåll dess datatyper och anpassa bevis, personer, rum, samband och upplösning. Byt import i spelmotorn och appen. Anpassa SVG-rummen, person-ID:n, antalskrav och ledtrådshjälp till det nya fallet. Byt även sparnyckeln så att fallen inte blandas ihop. Motorn är separerad från textinnehållet men är dimensionerad för det här fallets tre rum och tre personer; den är inte en generell redigerare för godtyckligt många fall.
-
-## Tester
+## Tester och undervisning
 
 ```sh
 npm test
 npm run test:e2e
 ```
 
-Starta utvecklingsservern först för webbläsartesterna. Playwright använder installerad Edge på Windows. På andra system används Playwright Chromium (`npx playwright install chromium`). Testet följer alla bevis, grundfrågor, kombinationer och konfrontationer, lämnar ett felaktigt svar, löser fallet, laddar om sparningen och startar om. Separat test granskar en smal skärm. `npm run build` kontrollerar TypeScript och produktionspaketering.
+Starta utvecklingsservern före webbläsartesterna. Playwright använder installerad Edge på Windows och Playwright Chromium på andra system (`npx playwright install chromium`). Tester följer hela scenordningen, kontrollerar porträtt, alla bevis, felval, hjälp, återupptagen sparning, slutet och omstarten. Skärmbilder sparas i testresultaten. Enhetstester säkerställer bland annat att inga bevisval förekommer innan bevisen är hittade.
 
-Läs `MYSTERIET.md` för lösningen och den logiska kedjan. Den filen innehåller spoilers och bör inte delas med elever före spelet.
+Berättelsen är förenklad för att minska mängden information eleven behöver hålla i huvudet. Faktisk speltid har inte uppmätts med elever. Den ursprungliga tidsramen 20–25 minuter behöver därför prövas på nytt; snabba läsare kan bli klara tidigare. Inga väntetider har lagts till för att förlänga spelet.
+
+Efteråt: samtala om vilket bevis som ändrade elevens första misstanke och varför en lögn inte automatiskt betyder skuld. Läs `MYSTERIET.md` för lärarens lösning och logiska kedja (spoilers).

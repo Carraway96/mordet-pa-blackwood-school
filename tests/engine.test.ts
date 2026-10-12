@@ -1,71 +1,78 @@
 import { describe, it, expect } from "vitest";
-import { initial, ready, match, restore, hint } from "../src/engine";
-import { clues, connections, people } from "../src/story";
-describe("ett rättvist och nåbart mysterium", () => {
-  it("har åtta tillgängliga bevis i tre rum", () => {
-    expect(clues).toHaveLength(8);
-    expect(new Set(clues.map((c) => c.room)).size).toBe(3);
-    expect(new Set(clues.map((c) => c.id)).size).toBe(8);
+import { scenes, cast, simpleClues, sceneHints } from "../src/novel";
+import {
+  initial,
+  restore,
+  next,
+  canContinue,
+  correctEvidence,
+} from "../src/novelEngine";
+describe("det guidade berättelseäventyret", () => {
+  it("har bilder och namn till alla talande personer", () => {
+    for (const s of scenes) expect(cast[s.speaker].name).toBeTruthy();
+    expect(Object.keys(cast)).toHaveLength(6);
   });
-  it("kräver hela utredningen före avslöjandet", () => {
-    const s = {
-      ...initial,
-      found: clues.map((c) => c.id),
-      asked: Object.entries(people).flatMap(([id, p]) =>
-        p.questions.map((q) => `${id}:${q.id}`),
-      ),
-      linked: connections.map((c) => c.id),
-      confronted: Object.keys(people),
-    };
-    expect(ready(s)).toBe(true);
-    for (const key of ["found", "asked", "linked", "confronted"] as const)
-      expect(ready({ ...s, [key]: s[key].slice(1) })).toBe(false);
-  });
-  it("öppnar samtliga konfrontationer med hittbara bevis", () => {
-    for (const c of connections) {
-      expect(match(...(c.pair as [string, string]))?.id).toBe(c.id);
-      expect(match(c.pair[1], c.pair[0])?.id).toBe(c.id);
-      for (const id of c.pair)
-        expect(clues.some((clue) => clue.id === id)).toBe(true);
+  it("leder till alla åtta bevis och slutet utan återvändsgränder", () => {
+    let state = { ...initial, started: true };
+    const visited = new Set();
+    for (let i = 0; i < scenes.length; i++) {
+      const scene = scenes[state.index];
+      visited.add(scene.id);
+      if (scene.kind === "inspect")
+        state = { ...state, found: [...state.found, ...scene.items] };
+      if (["question", "evidence", "accuse"].includes(scene.kind))
+        state = { ...state, done: [...state.done, scene.id] };
+      if (scene.kind !== "finish") {
+        expect(canContinue(state)).toBe(true);
+        state = next(state);
+      }
     }
-    for (const p of Object.values(people))
-      expect(connections.some((c) => c.id === p.requires)).toBe(true);
-    expect(match("clock", "clock")).toBeUndefined();
-    expect(match("window", "letter")).toBeUndefined();
+    expect(visited.size).toBe(scenes.length);
+    expect(new Set(state.found).size).toBe(8);
+    expect(scenes[state.index].kind).toBe("finish");
   });
-  it("återställer sparning och klarar skadad JSON", () => {
-    expect(restore("{")).toEqual(initial);
+  it("visar bevis först när de hittats i berättelsen", () => {
+    const available = new Set<string>();
+    for (const s of scenes) {
+      if (s.kind === "inspect")
+        for (const id of s.items) {
+          expect(simpleClues[id]).toBeTruthy();
+          available.add(id);
+        }
+      if (s.kind === "evidence")
+        for (const id of s.options) expect(available.has(id)).toBe(true);
+    }
+  });
+  it("låter spelaren prova igen och kräver rätt två bevis i kombinationen", () => {
+    expect(correctEvidence("clock-link", ["desk"])).toBe(false);
+    expect(correctEvidence("clock-link", ["board"])).toBe(true);
+    expect(correctEvidence("key-link", ["lock"])).toBe(false);
+    expect(correctEvidence("key-link", ["ledger", "lock"])).toBe(true);
+    expect(correctEvidence("key-link", ["ledger", "lock", "desk"])).toBe(false);
+  });
+  it("återställer rätt scen och undviker äldre eller trasig sparning", () => {
     const s = {
       ...initial,
       started: true,
-      chapter: 2,
+      index: 9,
       found: ["clock"],
-      asked: ["sara:alibi"],
-      linked: ["time"],
-      confronted: ["daniel"],
+      done: ["daniel-question"],
+      answers: { "daniel-question": "Svar" },
+      history: [0, 1],
     };
     expect(restore(JSON.stringify(s))).toEqual(s);
-    expect(
-      restore(JSON.stringify({ ...s, found: ["clock", "clock", "missing"] }))
-        .found,
-    ).toEqual(["clock"]);
+    for (const raw of [
+      "{",
+      JSON.stringify({ version: 1 }),
+      JSON.stringify({ ...s, index: -1 }),
+      JSON.stringify({ ...s, index: 999 }),
+    ])
+      expect(restore(raw)).toEqual(initial);
   });
-  it("har tre tips på alla steg utan att namnge gärningspersonen", () => {
-    for (const s of [
-      initial,
-      { ...initial, chapter: 2 },
-      { ...initial, chapter: 2, found: clues.map((c) => c.id) },
-      {
-        ...initial,
-        chapter: 2,
-        found: clues.map((c) => c.id),
-        asked: Array(9).fill("q"),
-        linked: connections.map((c) => c.id),
-        confronted: Object.keys(people),
-      },
-    ]) {
-      expect(hint(s)).toHaveLength(3);
-      expect(hint(s).join(" ")).not.toContain("Elisabeth");
+  it("ger tre hjälpnivåer utan att avslöja gärningspersonens namn", () => {
+    for (const s of scenes) {
+      expect(sceneHints(s)).toHaveLength(3);
+      expect(sceneHints(s).join(" ")).not.toContain("Elisabeth");
     }
   });
 });

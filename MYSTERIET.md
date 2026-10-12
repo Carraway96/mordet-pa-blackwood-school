@@ -29,7 +29,7 @@ Ingen ensam ledtråd bevisar skuld. Den samlade kedjan utesluter de två andra o
 
 ## Genomspelning och tidsbedömning
 
-Minsta utredningsväg: fyra biblioteksklick → kapitelövergång → två nya rum med fyra bevis → nio grundfrågor → tre kombinationer → tre konfrontationer → person, motiv och minst tre bevis → fyra korta upplösningskort → pedagogisk sammanfattning.
+Den förenklade versionen följer en sammanhängande scenordning: inledning med porträtt → fyra biblioteksklick → Daniels berättelse → tre korridorsbevis → jämförelse av klockan och inspelningen → Saras berättelse och telefonbevis → Elisabeths berättelse → avtalet på expeditionen → två bevis kopplas ihop → den hemliga klockuppgiften → gemensam sammanfattning → personval → upplösning och pedagogisk sammanfattning. Frågevalen ger olika ingångar till samtalet men alla avgörande fakta berättas på den gemensamma vägen.
 
 Vanligt spelande innebär även anteckningsläsning, återbesök och några felkombinationer. Om en elev fastnar erbjuder nivån tre i hjälpen en konkret instruktion utan att namnge gärningspersonen. All viktig text kan läsas igen. Slutscenen kan inte öppnas innan hela utredningen är gjord.
 

@@ -1,29 +1,29 @@
-import type { Person, Room } from "./story";
-import { people } from "./story";
-export function Portrait({ person }: { person: Person }) {
+import type { Room } from "./story";
+import { cast, type Character } from "./novel";
+export function Portrait({ person }: { person: Character }) {
   return (
     <svg
       viewBox="0 0 160 190"
       role="img"
-      aria-label={`Illustration av ${people[person].name}`}
+      aria-label={`Illustration av ${cast[person].name}`}
     >
       <defs>
         <radialGradient id={`p${person}`}>
-          <stop stopColor={people[person].color} />
+          <stop stopColor={cast[person].color} />
           <stop offset="1" stopColor="#17202d" />
         </radialGradient>
       </defs>
       <rect width="160" height="190" rx="70" fill={`url(#p${person})`} />
       <path
         d="M12 190 Q15 126 64 122 L96 122 Q145 126 148 190"
-        fill={people[person].color}
+        fill={cast[person].color}
       />
       <path d="M64 119 L80 147 96 119" fill="#e3d1b0" />
       <path d="M65 103 L65 127 Q80 138 95 127 L95 103" fill="#b88e72" />
       <ellipse cx="80" cy="72" rx="34" ry="46" fill="#d5af8d" />
       <path
         d={
-          person === "daniel"
+          ["daniel", "viktor", "you"].includes(person)
             ? "M43 66 L45 35 Q78 4 113 36 L116 65 L107 49 L52 49Z"
             : "M43 89 Q30 14 81 17 Q131 14 117 101 L109 62 Q85 55 69 36 Q57 55 51 84Z"
         }
@@ -44,7 +44,7 @@ export function Portrait({ person }: { person: Person }) {
         stroke="#8e6454"
         strokeWidth="2"
       />
-      {person === "elisabeth" && (
+      {["elisabeth", "viktor"].includes(person) && (
         <g fill="none" stroke="#bbaf8c" strokeWidth="2">
           <rect x="53" y="69" width="23" height="15" rx="4" />
           <rect x="86" y="69" width="23" height="15" rx="4" />
@@ -56,6 +56,22 @@ export function Portrait({ person }: { person: Person }) {
         fill="#26313c"
       />
       <path d="M80 149V190" stroke="#c9af78" strokeWidth="1" />
+      {person === "noren" && (
+        <path d="M107 151l9-4 9 4v11l-9 7-9-7Z" fill="#c9af78" />
+      )}
+      {person === "viktor" && (
+        <path
+          d="M57 100q24 31 47 0q-6 31-24 31t-23-31"
+          fill="#706257"
+          opacity=".7"
+        />
+      )}
+      {person === "you" && (
+        <path
+          d="M57 127q23 18 47 0l-7 22-24-8-5 33-11-3 7-32Z"
+          fill="#ac775b"
+        />
+      )}
     </svg>
   );
 }
